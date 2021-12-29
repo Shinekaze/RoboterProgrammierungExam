@@ -10,6 +10,7 @@ class Smoothing:
 
     def __init__(self, path_arr, obstacles, k_value=3):
         self.path_arr = path_arr
+        self.init_k = k_value
         self.k_value = k_value
         self.k_previous = 0
         self.k_next = 0
@@ -35,29 +36,32 @@ class Smoothing:
     def start_picker(self):
         # Choose a random node, but not one that's at the very ends of the path, ie not start or finish!
         self.start_point = random.randint(1, len(self.path_arr)-2)
+        print(f"Picking a central node: {self.start_point}")
 
 # ======================================================================================================================
 
     def k_checker(self):
-        print(f"Testing K: {self.k_value}")
+        if self.k_value >= 1:
+            print(f"Testing K: {self.k_value}")
 
-        # Check the Lower K stays in range!
-        if (self.start_point - self.k_value) < 0:
-            self.k_previous = 0
-        elif (self.start_point - self.k_value) >= 0:
-            self.k_previous = (self.start_point - self.k_value)
+            # Check the Lower K stays in range!
+            if (self.start_point - self.k_value) < 0:
+                self.k_previous = 0
+            elif (self.start_point - self.k_value) >= 0:
+                self.k_previous = (self.start_point - self.k_value)
 
-        # Check the Upper K stays in range!
-        if (self.start_point + self.k_value) < len(self.path_arr):
-            self.k_next = (self.start_point + self.k_value)
-        elif (self.start_point + self.k_value) >= len(self.path_arr):
-            self.k_next = len(self.path_arr)-1
+            # Check the Upper K stays in range!
+            if (self.start_point + self.k_value) < len(self.path_arr):
+                self.k_next = (self.start_point + self.k_value)
+            elif (self.start_point + self.k_value) >= len(self.path_arr):
+                self.k_next = len(self.path_arr)-1
+        print(f"K-Previous: {self.k_previous}")
+        print(f"K-Next: {self.k_next}")
 
 
 # ======================================================================================================================
 
     def DelTree(self):
-        print("K is 1, attempting DelTree")
         DT_Flag = True
         t = 1
         eps = 0.5
@@ -99,26 +103,28 @@ class Smoothing:
 
     def line_connector(self):
         point_a = self.path_arr[self.k_previous]
-        print(f"K-Previous: {self.k_previous}")
-        print(f"Start Node: {self.start_point}")
-        print(f"K-Next: {self.k_next}")
         point_b = self.path_arr[self.k_next]
         line_check = self.world_collider.lineInCollision(point_a, point_b)
 
-        if line_check:
+        if line_check and self.k_value > 1:
+
             self.k_value -= 1
             print("Line cannot be joined: De-incrementing K")
-
-            if self.k_value < 1:
-                return self.DelTree()  # Returns True after successful run of DelTree
-
             return False
 
-        else:
+        elif line_check and self.k_value == 1:
+            print("K is 1 and line cannot be joined, attempting DelTree")
+            self.DelTree()  # Returns True after successful run of DelTree
+            print(self.path_arr)
+            return True
 
+        else:
             self.G_graph.add_edge(self.k_previous, self.k_next)
 
-            del self.path_arr[self.k_previous + 1:self.k_next - 1]  # deletes the points between
+            # if (self.k_previous+1) == (self.k_next - 1):
+            #     del self.path_arr[(self.k_previous+1)]
+            # else:
+            del self.path_arr[(self.k_previous + 1):self.k_next]  # deletes the points between
 
             print("Line successfully joined, extra points deleted. New path is: ")
             print(self.path_arr)
@@ -142,22 +148,24 @@ class Smoothing:
 
     def smoother(self):
         path_flag = False
-        point_flag = False
+        print(f"Initial Path: {self.path_arr}")
+
         while not path_flag:
-            self.graph_builder()
+            point_flag = False
+            self.k_value = self.init_k  # Reset K
+            # self.graph_builder()
             self.start_picker()
             while not point_flag:
                 self.k_checker()
                 # if self.k_value == 1:
                 #     path_flag = self.DelTree()
                 point_flag = self.line_connector()
-            print(self.path_arr)
-            x = self.variance_tracker()  # Stand-in pseudo-code currently
-
-            if x < 1:
-                print("Variance is too small, ending loop")
-                # Todo: x and 1 are placeholders for the variance functionality
-                path_flag = True
+            # x = self.variance_tracker()  # Stand-in pseudo-code currently
+            #
+            # if x < 1:
+            #     print("Variance is too small, ending loop")
+            #     # Todo: x and 1 are placeholders for the variance functionality
+            #     path_flag = True
 
             self.iteration += 1
 
@@ -165,6 +173,8 @@ class Smoothing:
                 # Todo: Change iterations to 50
                 print("Maximum iterations reached")
                 path_flag = True
+
+        self.graph_builder()
 
 
 # ======================================================================================================================
