@@ -34,26 +34,25 @@ class Smoothing:
 
     def start_picker(self):
         # Choose a random node, but not one that's at the very ends of the path, ie not start or finish!
-        self.start_point = random.randint(1, len(self.path_arr)-1)
+        self.start_point = random.randint(1, len(self.path_arr)-2)
 
 # ======================================================================================================================
 
     def k_checker(self):
-        if self.k_value >= 1:
+        print(f"Testing K: {self.k_value}")
 
-            # Check the Lower K stays in range!
-            if (self.start_point - self.k_value) < 0:
-                self.k_previous = 0
-            elif (self.start_point - self.k_value) >= 0:
-                self.k_previous = (self.start_point - self.k_value)
+        # Check the Lower K stays in range!
+        if (self.start_point - self.k_value) < 0:
+            self.k_previous = 0
+        elif (self.start_point - self.k_value) >= 0:
+            self.k_previous = (self.start_point - self.k_value)
 
-            # Check the Upper K stays in range!
-            if (self.start_point + self.k_value) < len(self.path_arr):
-                self.k_next = (self.start_point + self.k_value)
-            elif (self.start_point + self.k_value) >= len(self.path_arr):
-                self.k_next = len(self.path_arr)-1
+        # Check the Upper K stays in range!
+        if (self.start_point + self.k_value) < len(self.path_arr):
+            self.k_next = (self.start_point + self.k_value)
+        elif (self.start_point + self.k_value) >= len(self.path_arr):
+            self.k_next = len(self.path_arr)-1
 
-            return True
 
 # ======================================================================================================================
 
@@ -100,9 +99,9 @@ class Smoothing:
 
     def line_connector(self):
         point_a = self.path_arr[self.k_previous]
-        print(self.start_point)
-        print(len(self.path_arr))
-        print(self.k_next)
+        print(f"K-Previous: {self.k_previous}")
+        print(f"Start Node: {self.start_point}")
+        print(f"K-Next: {self.k_next}")
         point_b = self.path_arr[self.k_next]
         line_check = self.world_collider.lineInCollision(point_a, point_b)
 
@@ -110,14 +109,14 @@ class Smoothing:
             self.k_value -= 1
             print("Line cannot be joined: De-incrementing K")
 
-            if self.k_value == 1:
+            if self.k_value < 1:
                 return self.DelTree()  # Returns True after successful run of DelTree
 
             return False
 
         else:
 
-            self.G_graph.add_edge[self.k_previous, self.k_next]
+            self.G_graph.add_edge(self.k_previous, self.k_next)
 
             del self.path_arr[self.k_previous + 1:self.k_next - 1]  # deletes the points between
 
