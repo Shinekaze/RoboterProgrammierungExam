@@ -9,10 +9,12 @@ License is based on Creative Commons: Attribution-NonCommercial 4.0 Internationa
 import IPPRMBase
 from IPPerfMonitor import IPPerfMonitor
 import networkx as nx
+import random
+import numpy as np
+import math
 
 # reduce coding effort by using function provided by scipy
-from scipy.spatial.distance import euclidean
-
+from scipy.spatial.distance import euclidean, cityblock
 
 class BasicPRM(IPPRMBase.PRMBase):
 
