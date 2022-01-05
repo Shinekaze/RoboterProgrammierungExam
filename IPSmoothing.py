@@ -36,10 +36,8 @@ class IPSmoothing:
         tx = 0
 
         # TODO: Abbruchkriterium Varianz der letzten x versuche
-        for n in range(10):
-            pos = nx.get_node_attributes(smooth_graph,'pos')
-            # smooth_graph = nx.Graph(nx.subgraph(smooth_graph, self.solution))
-            path = nx.shortest_path(smooth_graph,"start","goal")
+        for n in range(20):
+
             xx = 0
             i = random.randint(1, len(path)-2)
 
@@ -50,6 +48,7 @@ class IPSmoothing:
                 print(f"n step: {xx}")
                 print(f"n: {n}")
                 print(f"k: {k}")
+                print(self.plannerFactoryName)
 
                 if i-k <= 0:
                     k_prev_node = "start"
@@ -66,7 +65,7 @@ class IPSmoothing:
                 print(f"k_next: {k_next_node}")
 
                 if self.collision_checker.lineInCollision(pos[k_prev_node],pos[k_next_node]):
-                    print("Line Collides, No change")
+                    print("Line collides, No change")
 
                 elif not self.collision_checker.lineInCollision(pos[k_prev_node],pos[k_next_node]):
                     smooth_graph.add_edge(k_prev_node,k_next_node)
@@ -87,18 +86,20 @@ class IPSmoothing:
                         print("new edge (", k_prev_node,"-", k_next_node, ") k =",k, " remove:", between_nodes)
 
                     #  Allows for iterative visualization
-                    self.visualize_path(self.temp_planner, smooth_graph, tx) #=========================Remove
+                    # self.visualize_path(self.temp_planner, smooth_graph, tx) #=========================Remove
 
                     break
 
                 if k == 1 and self.collision_checker.lineInCollision(pos[k_prev_node],pos[k_next_node]):
                     smooth_graph = self.del_tree(smooth_graph, path, eps, i)
 
-                    path = nx.shortest_path(smooth_graph,"start","goal") #====================Needed?
-                    print(f'del_tree path creation, new path: {path}')
+
 
                 #  Allows for iterative visualization
-                self.visualize_path(self.temp_planner, smooth_graph, tx) #=========================Remove
+                # self.visualize_path(self.temp_planner, smooth_graph, tx) #=========================Remove
+                pos = nx.get_node_attributes(smooth_graph,'pos')
+                # smooth_graph = nx.Graph(nx.subgraph(smooth_graph, self.solution))
+                path = nx.shortest_path(smooth_graph,"start","goal")
 
         IPSmoothing.statistics.append({"benchmark_name": self.benchmark.name,
                                         "planner_name": self.plannerFactoryName,
@@ -118,12 +119,12 @@ class IPSmoothing:
             DT_Flag = True
             t = 1
             # eps = 0.5
-            pos = nx.get_node_attributes(graph, 'pos')
+            # pos = nx.get_node_attributes(graph, 'pos')
             # print(pos)
-            print(path)
+            # print(path)
 
             # Gather the points
-            print(f"centered on list item {center_index}, node: {path[center_index]}")
+            print(f"DelTree centered on list item {center_index}, node: {path[center_index]}")
             # print(f"Number of nodes in graph: {graph.number_of_nodes()}")
             # print(f"Number of edges in graph: {graph.number_of_edges()}")
 
@@ -145,17 +146,17 @@ class IPSmoothing:
 
                 # Check for line collision
                 if np.linalg.norm(dAB)/pow(2, t) < eps or np.linalg.norm(dCB)/pow(2, t) < eps:
-                    print("Line value smaller than epsilon")
+                    print("DelTree failed, line value smaller than epsilon")
                     # if magnitude/2^t is smaller than eps, break loop
                     DT_Flag = False
                     break
 
                 elif not self.collision_checker.lineInCollision(pD, pE):
-                    print("DelTree successful")
+
                     DT_Flag = False  # Breaks while loop
 
-                    new_id1 = random.randint(200, 300)
-                    new_id2 = random.randint(200, 300)
+                    new_id1 = random.randint(301, 400)
+                    new_id2 = random.randint(301, 400)
 
                     graph.add_node(new_id1, pos=pD.tolist())
                     graph.add_node(new_id2, pos=pE.tolist())
@@ -165,6 +166,7 @@ class IPSmoothing:
                     graph.add_edge(new_id2, k_next_node)
 
                     graph.remove_node(center_node)
+                    print(f"Adding nodes: {new_id1} and {new_id2}")
                     print(f"deleting center node: {center_node}")
 
                     # pos = nx.get_node_attributes(graph, 'pos')
@@ -173,6 +175,12 @@ class IPSmoothing:
                     # self.path_arr.insert(self.k_next, pE)  # Inserts Pz2
                     # del self.path_arr[self.start_point]  # Deletes corner point
                     # self.path_arr.insert(self.start_point, pD)  #Inserts Pz1
+
+                    print("DelTree successful")
+
+                    path = nx.shortest_path(graph,"start","goal") #====================Needed?
+                    print(f'del_tree path creation, new path: {path}')
+
                     break
                 else:
                     print("DelTree line collides")
