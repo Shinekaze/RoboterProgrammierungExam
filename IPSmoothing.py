@@ -18,8 +18,10 @@ class IPSmoothing:
         self.planner = result.planner
         self.plannerFactoryName = result.plannerFactoryName
         self.temp_planner = temporary_planner
+        self.size_history = []
+        self.length_history = []
 
-    def smooth_solution(self, k_max, eps, debug = False):
+    def smooth_solution(self, k_max, eps, variance_steps, debug = False):
         """
         Returns smoothed graph containing only the solution node and edges
         """
@@ -31,17 +33,23 @@ class IPSmoothing:
         smooth_graph = nx.Graph(nx.subgraph(self.graph, self.solution))
         path = nx.shortest_path(smooth_graph,"start","goal")
 
-        length_history = [self.get_path_length(smooth_graph, path)]
-        size_history = [len(path)]
+        self.length_history.append(self.get_path_length(smooth_graph, path))
+        self.size_history.append(len(path))
         tx = 0
 
         # TODO: Abbruchkriterium Varianz der letzten x versuche
-        for n in range(20):
-
+        for n in range(20): # Todo: numpy variance -> length_history[-variance_steps]
             xx = 0
             i = random.randint(1, len(path)-2)
+            break_loop = False
 
             for k in range(k_max, 0, -1):
+
+                if break_loop:
+                    print("breaking!")
+                    break
+                iscolliding = False
+
                 tx += 1
                 xx += 1
                 print(f"total steps: {tx}")
@@ -60,17 +68,22 @@ class IPSmoothing:
                 else:
                     k_next_node = path[i+k]
 
+                print(f"Initial Path: {path}")
+                print(f"i: {i}")
+                print(f"length of path: {len(path)}")
                 print(f"k_prev: {k_prev_node}")
                 print(f"Centered: {path[i]}")
                 print(f"k_next: {k_next_node}")
 
                 if self.collision_checker.lineInCollision(pos[k_prev_node],pos[k_next_node]):
                     print("Line collides, No change")
+                    iscolliding = True
 
-                elif not self.collision_checker.lineInCollision(pos[k_prev_node],pos[k_next_node]):
+                else:
                     smooth_graph.add_edge(k_prev_node,k_next_node)
 
                     between_nodes = path[path.index(k_prev_node)+1:path.index(k_next_node)]
+                    print(f"Deleted Nodes: {between_nodes}")
 
                     for node in between_nodes:
                         smooth_graph.remove_node(node)
@@ -78,8 +91,8 @@ class IPSmoothing:
                     path = nx.shortest_path(smooth_graph,"start","goal")
                     print(f'new path creation, new path: {path}')
 
-                    length_history.append(self.get_path_length(smooth_graph, path))
-                    size_history.append(len(path))
+                    # self.length_history.append(self.get_path_length(smooth_graph, path))
+                    # self.size_history.append(len(path))
                     
                     if debug:
                         print(path)
@@ -88,17 +101,19 @@ class IPSmoothing:
                     #  Allows for iterative visualization
                     # self.visualize_path(self.temp_planner, smooth_graph, tx) #=========================Remove
 
-                    break
+                    # break
+                    break_loop = True
 
-                if k == 1 and self.collision_checker.lineInCollision(pos[k_prev_node],pos[k_next_node]):
+                self.length_history.append(self.get_path_length(smooth_graph, path))
+                self.size_history.append(len(path))
+
+                if k == 1 and iscolliding and not break_loop:
                     smooth_graph = self.del_tree(smooth_graph, path, eps, i)
-
-
 
                 #  Allows for iterative visualization
                 # self.visualize_path(self.temp_planner, smooth_graph, tx) #=========================Remove
+
                 pos = nx.get_node_attributes(smooth_graph,'pos')
-                # smooth_graph = nx.Graph(nx.subgraph(smooth_graph, self.solution))
                 path = nx.shortest_path(smooth_graph,"start","goal")
 
         IPSmoothing.statistics.append({"benchmark_name": self.benchmark.name,
@@ -107,85 +122,89 @@ class IPSmoothing:
                                         "original_size" : len(self.solution),
                                         "smoothed_length" : self.get_path_length(smooth_graph, path),
                                         "smoothed_size" : len(path),
-                                        "length_history": length_history,
-                                        "size_history": size_history})
+                                        "length_history": self.length_history,
+                                        "size_history": self.size_history})
 
         return smooth_graph
 
     def del_tree(self, graph, path, eps, center_index):
         # print("del_tree")
-        bypass = False # Debug flag to skip over del tree for testing. True skips, False does deltree
-        if not bypass:
-            DT_Flag = True
-            t = 1
-            # eps = 0.5
-            # pos = nx.get_node_attributes(graph, 'pos')
-            # print(pos)
-            # print(path)
+        DT_Flag = True
+        t = 1
+        # eps = 0.5
+        # pos = nx.get_node_attributes(graph, 'pos')
+        # print(pos)
+        # print(path)
 
-            # Gather the points
-            print(f"DelTree centered on list item {center_index}, node: {path[center_index]}")
-            # print(f"Number of nodes in graph: {graph.number_of_nodes()}")
-            # print(f"Number of edges in graph: {graph.number_of_edges()}")
+        # Gather the points
+        print(f"DelTree centered on list item {center_index}, node: {path[center_index]}")
+        # print(f"Number of nodes in graph: {graph.number_of_nodes()}")
+        # print(f"Number of edges in graph: {graph.number_of_edges()}")
 
-            k_prev_node = path[center_index-1]
-            center_node = path[center_index]
-            k_next_node = path[center_index+1]
+        k_prev_node = path[center_index-1]
+        center_node = path[center_index]
+        k_next_node = path[center_index+1]
 
-            pA = np.array(graph.nodes[k_prev_node]['pos'])
-            pB = np.array(graph.nodes[center_node]['pos'])
-            pC = np.array(graph.nodes[k_next_node]['pos'])
+        pA = np.array(graph.nodes[k_prev_node]['pos'])
+        pB = np.array(graph.nodes[center_node]['pos'])
+        pC = np.array(graph.nodes[k_next_node]['pos'])
 
-            # Calculate distance
-            dAB = pA - pB
-            dCB = pC - pB
+        # Calculate distance
+        dAB = pA - pB
+        dCB = pC - pB
 
-            while DT_Flag:
-                pD = pB + dAB/pow(2, t)  # Pz1 from slides
-                pE = pB + dCB/pow(2, t)  # Pz2 from slides
+        while DT_Flag:
+            pD = pB + dAB/pow(2, t)  # Pz1 from slides
+            pE = pB + dCB/pow(2, t)  # Pz2 from slides
 
-                # Check for line collision
-                if np.linalg.norm(dAB)/pow(2, t) < eps or np.linalg.norm(dCB)/pow(2, t) < eps:
-                    print("DelTree failed, line value smaller than epsilon")
-                    # if magnitude/2^t is smaller than eps, break loop
-                    DT_Flag = False
-                    break
+            # Check for line collision
+            if np.linalg.norm(dAB)/pow(2, t) < eps or np.linalg.norm(dCB)/pow(2, t) < eps:
+                print("DelTree failed, line value smaller than epsilon")
+                # if magnitude/2^t is smaller than eps, break loop
+                DT_Flag = False
 
-                elif not self.collision_checker.lineInCollision(pD, pE):
+            elif not self.collision_checker.lineInCollision(pD, pE):
 
-                    DT_Flag = False  # Breaks while loop
+                DT_Flag = False  # Breaks while loop
 
-                    new_id1 = random.randint(301, 400)
-                    new_id2 = random.randint(301, 400)
+                print(f"graph nodes: {graph.nodes}")
+                test = max([i for i in graph.nodes if isinstance(i, int)])
 
-                    graph.add_node(new_id1, pos=pD.tolist())
-                    graph.add_node(new_id2, pos=pE.tolist())
+                print(test)
 
-                    graph.add_edge(k_prev_node, new_id1)
-                    graph.add_edge(new_id1, new_id2)
-                    graph.add_edge(new_id2, k_next_node)
+                new_id1 = test+1
+                new_id2 = test+2
 
-                    graph.remove_node(center_node)
-                    print(f"Adding nodes: {new_id1} and {new_id2}")
-                    print(f"deleting center node: {center_node}")
+                graph.add_node(new_id1, pos=pD.tolist())
+                graph.add_node(new_id2, pos=pE.tolist())
 
-                    # pos = nx.get_node_attributes(graph, 'pos')
-                    # print(pos)
+                graph.add_edge(k_prev_node, new_id1)
+                graph.add_edge(new_id1, new_id2)
+                graph.add_edge(new_id2, k_next_node)
 
-                    # self.path_arr.insert(self.k_next, pE)  # Inserts Pz2
-                    # del self.path_arr[self.start_point]  # Deletes corner point
-                    # self.path_arr.insert(self.start_point, pD)  #Inserts Pz1
+                graph.remove_node(center_node)
+                print(f"Adding nodes: {new_id1} and {new_id2}")
+                print(f"deleting center node: {center_node}")
 
-                    print("DelTree successful")
+                # pos = nx.get_node_attributes(graph, 'pos')
+                # print(pos)
 
-                    path = nx.shortest_path(graph,"start","goal") #====================Needed?
-                    print(f'del_tree path creation, new path: {path}')
+                # self.path_arr.insert(self.k_next, pE)  # Inserts Pz2
+                # del self.path_arr[self.start_point]  # Deletes corner point
+                # self.path_arr.insert(self.start_point, pD)  #Inserts Pz1
 
-                    break
-                else:
-                    print("DelTree line collides")
+                print("DelTree successful")
 
-                t += 1
+                path = nx.shortest_path(graph,"start","goal") #====================Needed?
+                print(f'del_tree path creation, new path: {path}')
+
+            else:
+                print("DelTree line collides")
+
+            self.length_history.append(self.get_path_length(graph, path))
+            self.size_history.append(len(path))
+
+            t += 1
 
         return graph
         
