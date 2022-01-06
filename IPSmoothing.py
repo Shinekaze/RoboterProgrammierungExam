@@ -3,6 +3,7 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import numpy as np
 import math
+import time
 
 class IPSmoothing:
     """
@@ -25,6 +26,7 @@ class IPSmoothing:
         """
         Returns smoothed graph containing only the solution node and edges
         """
+        start_time = time.time()
 
         if self.solution == []:
             return None
@@ -46,17 +48,17 @@ class IPSmoothing:
             for k in range(k_max, 0, -1):
 
                 if break_loop:
-                    print("breaking!")
+                    # print("breaking!")
                     break
                 iscolliding = False
 
                 tx += 1
                 xx += 1
-                print(f"total steps: {tx}")
-                print(f"n step: {xx}")
-                print(f"n: {n}")
-                print(f"k: {k}")
-                print(self.plannerFactoryName)
+                # print(f"total steps: {tx}")
+                # print(f"n step: {xx}")
+                # print(f"n: {n}")
+                # print(f"k: {k}")
+                # print(self.plannerFactoryName)
 
                 if i-k <= 0:
                     k_prev_node = "start"
@@ -68,28 +70,28 @@ class IPSmoothing:
                 else:
                     k_next_node = path[i+k]
 
-                print(f"Initial Path: {path}")
-                print(f"i: {i}")
-                print(f"length of path: {len(path)}")
-                print(f"k_prev: {k_prev_node}")
-                print(f"Centered: {path[i]}")
-                print(f"k_next: {k_next_node}")
+                # print(f"Initial Path: {path}")
+                # print(f"i: {i}")
+                # print(f"length of path: {len(path)}")
+                # print(f"k_prev: {k_prev_node}")
+                # print(f"Centered: {path[i]}")
+                # print(f"k_next: {k_next_node}")
 
                 if self.collision_checker.lineInCollision(pos[k_prev_node],pos[k_next_node]):
-                    print("Line collides, No change")
+                    # print("Line collides, No change")
                     iscolliding = True
 
                 else:
                     smooth_graph.add_edge(k_prev_node,k_next_node)
 
                     between_nodes = path[path.index(k_prev_node)+1:path.index(k_next_node)]
-                    print(f"Deleted Nodes: {between_nodes}")
+                    # print(f"Deleted Nodes: {between_nodes}")
 
                     for node in between_nodes:
                         smooth_graph.remove_node(node)
 
                     path = nx.shortest_path(smooth_graph,"start","goal")
-                    print(f'new path creation, new path: {path}')
+                    # print(f'new path creation, new path: {path}')
 
                     # self.length_history.append(self.get_path_length(smooth_graph, path))
                     # self.size_history.append(len(path))
@@ -116,14 +118,17 @@ class IPSmoothing:
                 pos = nx.get_node_attributes(smooth_graph,'pos')
                 path = nx.shortest_path(smooth_graph,"start","goal")
 
+        end_time = time.time()
         IPSmoothing.statistics.append({"benchmark_name": self.benchmark.name,
                                         "planner_name": self.plannerFactoryName,
                                         "original_length" : self.get_path_length(self.graph, self.solution),
                                         "original_size" : len(self.solution),
                                         "smoothed_length" : self.get_path_length(smooth_graph, path),
                                         "smoothed_size" : len(path),
+                                        "min_length": self.get_path_length(smooth_graph, ["start", "goal"]),
                                         "length_history": self.length_history,
-                                        "size_history": self.size_history})
+                                        "size_history": self.size_history,
+                                        "time": end_time-start_time})
 
         return smooth_graph
 
@@ -137,7 +142,7 @@ class IPSmoothing:
         # print(path)
 
         # Gather the points
-        print(f"DelTree centered on list item {center_index}, node: {path[center_index]}")
+        # print(f"DelTree centered on list item {center_index}, node: {path[center_index]}")
         # print(f"Number of nodes in graph: {graph.number_of_nodes()}")
         # print(f"Number of edges in graph: {graph.number_of_edges()}")
 
@@ -159,7 +164,7 @@ class IPSmoothing:
 
             # Check for line collision
             if np.linalg.norm(dAB)/pow(2, t) < eps or np.linalg.norm(dCB)/pow(2, t) < eps:
-                print("DelTree failed, line value smaller than epsilon")
+                # print("DelTree failed, line value smaller than epsilon")
                 # if magnitude/2^t is smaller than eps, break loop
                 DT_Flag = False
 
@@ -167,10 +172,10 @@ class IPSmoothing:
 
                 DT_Flag = False  # Breaks while loop
 
-                print(f"graph nodes: {graph.nodes}")
+                # print(f"graph nodes: {graph.nodes}")
                 test = max([i for i in graph.nodes if isinstance(i, int)])
 
-                print(test)
+                # print(test)
 
                 new_id1 = test+1
                 new_id2 = test+2
@@ -183,8 +188,8 @@ class IPSmoothing:
                 graph.add_edge(new_id2, k_next_node)
 
                 graph.remove_node(center_node)
-                print(f"Adding nodes: {new_id1} and {new_id2}")
-                print(f"deleting center node: {center_node}")
+                # print(f"Adding nodes: {new_id1} and {new_id2}")
+                # print(f"deleting center node: {center_node}")
 
                 # pos = nx.get_node_attributes(graph, 'pos')
                 # print(pos)
@@ -193,13 +198,14 @@ class IPSmoothing:
                 # del self.path_arr[self.start_point]  # Deletes corner point
                 # self.path_arr.insert(self.start_point, pD)  #Inserts Pz1
 
-                print("DelTree successful")
+                # print("DelTree successful")
 
                 path = nx.shortest_path(graph,"start","goal") #====================Needed?
-                print(f'del_tree path creation, new path: {path}')
+                # print(f'del_tree path creation, new path: {path}')
 
             else:
-                print("DelTree line collides")
+                # print("DelTree line collides")
+                pass
 
             self.length_history.append(self.get_path_length(graph, path))
             self.size_history.append(len(path))
@@ -246,25 +252,26 @@ class IPSmoothing:
                                )
         plt.show()
 
-    def draw_statistics(self):
+    def draw_history(self):
         """
         Draw history graph for the last performed smoothing
         """
 
         #print(IPSmoothing.statistics[-1]["length_history"], IPSmoothing.statistics[-1]["planner_name"])
         x = range(len(IPSmoothing.statistics[-1]["length_history"]))
+        y = [ length / IPSmoothing.statistics[-1]["min_length"] for length in IPSmoothing.statistics[-1]["length_history"]]
 
         fig = plt.figure()
         ax = fig.add_subplot()
         
-        ax.plot(x, IPSmoothing.statistics[-1]["length_history"], color='g', marker='o', linestyle='dashed')
-        ax.set_ylabel(IPSmoothing.statistics[-1]["benchmark_name"] + " Path length", color="g")
+        ax.plot(x, y, color='g') #, marker='o', linestyle='dashed')
+        ax.set_ylabel(IPSmoothing.statistics[-1]["benchmark_name"] + " Relative path length", color="g")
         ax.set_title("History of smoothing algorithm", color='w')
         ax.set_xlabel("Number of collision checks")
-        ax.set_xticks(x)
+        ax.set_xticks(np.arange(0, len(x), 10))
 
         ax2 = ax.twinx()
-        ax2.plot(x, IPSmoothing.statistics[-1]["size_history"], color='purple', marker='o', linestyle='dashed')
+        ax2.plot(x, IPSmoothing.statistics[-1]["size_history"], color='purple') #, marker='o', linestyle='dashed')
         ax2.set_ylabel(IPSmoothing.statistics[-1]["benchmark_name"] + " Number of nodes", color="purple")
 
     def get_path_length(self, graph, solution):
@@ -286,7 +293,7 @@ class IPSmoothing:
         # print(point_1, point_2, distance)
         return distance
         
-    def draw_comparison(benchList):
+    def draw_statistics(benchList):
         """
         Bar plot for every benchmark with (smoothed) solution path per planner algorithm
         """
@@ -298,17 +305,34 @@ class IPSmoothing:
 
             fig, ax = plt.subplots()
         
-            width = 0.15
+            width = 0.2
             
             ax.set_title("Solution path before and after smoothing", color='w')
-            ax.bar(np.arange(len(data_list))-width, [data["original_length"] for data in data_list],width, color="g")
-            ax.bar(np.arange(len(data_list)), [data["smoothed_length"] for data in data_list],width, color="lightgreen",)
-            ax.set_ylabel(bench.name + " Path length", color="g")
+            ax.bar(np.arange(len(data_list)), [data["smoothed_length"] / data["min_length"] for data in data_list],width, color="g")
+            ax.bar(np.arange(len(data_list)), [data["original_length"] / data["min_length"] for data in data_list],width, color="None", edgecolor='darkgreen', hatch='//')
+            ax.set_ylabel(bench.name + " Relative path length", color="g")
             ax.set_xticks(np.arange(len(data_list)) + width/2)
             ax.set_xticklabels([data["planner_name"] for data in data_list])
 
             ax2 = ax.twinx()
-            ax2.bar(np.arange(len(data_list))+width, [data["original_size"] for data in data_list],width, color="purple")
-            ax2.bar(np.arange(len(data_list))+2*width, [data["smoothed_size"] for data in data_list],-width, color="violet")
+            ax2.bar(np.arange(len(data_list))+width, [data["smoothed_size"] for data in data_list],-width, color="purple")
+            ax2.bar(np.arange(len(data_list))+width, [data["original_size"] for data in data_list],width, color="None", edgecolor='indigo', hatch='//')
             ax2.set_ylabel(bench.name + " Number of nodes", color="purple")
-#%%
+
+            ax3 = ax.twinx()
+            ax3.bar(np.arange(len(data_list))+2*width, [data["time"] for data in data_list],width, color="y")
+            ax3.set_ylabel(bench.name + " Smoothing time",  color="y")
+            ax3.spines['right'].set_position(('axes', 1.15))
+            ax3.spines['right'].set_color("y")
+
+        IPSmoothing.statistics = []
+
+
+    def draw_history_per_benchmark(benchList):
+        pass
+
+    def draw_history_all_combined(benchList):
+        pass
+
+    def draw_statistics_all_combined(benchList):
+        pass
