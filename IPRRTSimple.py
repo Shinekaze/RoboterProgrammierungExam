@@ -55,7 +55,12 @@ class RRTSimple(PRMBase):
                     mapping={0:'start'}
                     self.graph = nx.relabel_nodes(self.graph,mapping)
 
-                    return nx.shortest_path(self.graph,"start","goal")
+                    #return nx.shortest_path(self.graph,"start","goal")
+                    try:
+                        path = nx.shortest_path(self.graph,"start","goal")
+                    except:
+                        return []
+                    return path
 
             
             pos = self._getRandomFreePosition()
@@ -70,3 +75,5 @@ class RRTSimple(PRMBase):
                 self.graph.add_node(self.lastGeneratedNodeNumber, pos=pos)
                 self.graph.add_edge(result[1],self.lastGeneratedNodeNumber)
                 self.lastGeneratedNodeNumber +=1
+
+        return []
