@@ -266,7 +266,7 @@ class IPSmoothing:
         
         ax.plot(x, y, color='g') #, marker='o', linestyle='dashed')
         ax.set_ylabel(IPSmoothing.statistics[-1]["benchmark_name"] + " Relative path length", color="g")
-        ax.set_title("History of smoothing algorithm", color='w')
+        ax.set_title("History of smoothing algorithm", color='k')
         ax.set_xlabel("Number of collision checks")
         ax.set_xticks(np.arange(0, len(x), 10))
 
@@ -300,14 +300,18 @@ class IPSmoothing:
 
         for bench in benchList:
             data_list = [entry for entry in IPSmoothing.statistics if entry["benchmark_name"] == bench.name]
+
             #print(data_list)
+            if data_list == []:
+                continue
+            
             #print([data["original_size"] for data in data_list])
 
             fig, ax = plt.subplots()
         
             width = 0.2
             
-            ax.set_title("Solution path before and after smoothing", color='w')
+            ax.set_title("Solution path before and after smoothing", color='k')
             ax.bar(np.arange(len(data_list)), [data["smoothed_length"] / data["min_length"] for data in data_list],width, color="g")
             ax.bar(np.arange(len(data_list)), [data["original_length"] / data["min_length"] for data in data_list],width, color="None", edgecolor='darkgreen', hatch='//')
             ax.set_ylabel(bench.name + " Relative path length", color="g")
@@ -325,14 +329,70 @@ class IPSmoothing:
             ax3.spines['right'].set_position(('axes', 1.15))
             ax3.spines['right'].set_color("y")
 
-        IPSmoothing.statistics = []
+
+    def draw_history_per_benchmark(benchList, num_coll_checks, combine_all):
+        """
+        Draw history graph for all algorithms per benchmark
+        Number of collision checks to draw
+        if combine_all = true one single graph with all benchmarks is drawn
+        """
+
+        for bench in benchList:
+            data_list = [entry for entry in IPSmoothing.statistics if (entry["benchmark_name"] == bench.name) or combine_all]
+            
+            # print(data_list)
+            if data_list == []:
+                continue
+
+            length_means = []
+            length_asymmetric_errors = [[], []]
+            size_means = []
+            size_asymmetric_errors = [[], []]
+
+            for coll_check in range(num_coll_checks):
+                length_per_algorithm = []
+                size_per_algorithm = []
+
+                for data in data_list:
+                    if coll_check < len(data["length_history"]):
+                        length_per_algorithm.append(data["length_history"][coll_check] / data["min_length"])
+                        size_per_algorithm.append(data["size_history"][coll_check])
+                    else:
+                        length_per_algorithm.append(np.nan)
+                        size_per_algorithm.append(np.nan)
+
+                lenght_mean = np.mean(length_per_algorithm)
+                length_means.append(lenght_mean)
+                length_asymmetric_errors[0].append(lenght_mean - min(length_per_algorithm))
+                length_asymmetric_errors[1].append(max(length_per_algorithm) - lenght_mean)
+                
+                size_mean = np.mean(size_per_algorithm)
+                size_means.append(size_mean)
+                size_asymmetric_errors[0].append(size_mean - min(size_per_algorithm))
+                size_asymmetric_errors[1].append(max(size_per_algorithm) - size_mean)
 
 
-    def draw_history_per_benchmark(benchList):
-        pass
+            fig = plt.figure()
+            ax = fig.add_subplot()
+            
+            x = np.arange(num_coll_checks)
 
-    def draw_history_all_combined(benchList):
-        pass
+            if combine_all:
+                ax.set_title("History of smoothing for all planners and benchmarks", color='k')
+            else:
+                ax.set_title("'" + bench.name + "' History of smoothing for all planners", color='k')
+            ax.errorbar(x, length_means, yerr=length_asymmetric_errors, color='g', elinewidth = 0.5)
+            ax.set_ylabel("Relative path length", color="g")
+            ax.set_xlabel("Number of collision checks")
+            ax.set_xticks(np.arange(0, len(x), 10))
+
+            ax2 = ax.twinx()
+            ax2.errorbar(x+0.5, size_means, yerr=size_asymmetric_errors, color='purple', elinewidth = 0.5)
+            ax2.set_ylabel("Number of nodes", color="purple")
+
+            if combine_all:
+                break
+
 
     def draw_statistics_all_combined(benchList):
         pass
