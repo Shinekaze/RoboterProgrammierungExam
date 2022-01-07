@@ -40,7 +40,7 @@ class IPSmoothing:
         tx = 0
 
         # TODO: Abbruchkriterium Varianz der letzten x versuche
-        for n in range(20): # Todo: numpy variance -> length_history[-variance_steps]
+        for n in range(50): # Todo: numpy variance -> length_history[-variance_steps]
             xx = 0
             i = random.randint(1, len(path)-2)
             break_loop = False
@@ -236,11 +236,11 @@ class IPSmoothing:
         nx.draw_networkx_nodes(smoothed_graph,
                                pos,
                                node_size=300,
-                               node_color='orange',
+                               node_color='purple',
                                ax=ax
                                )
 
-        nx.draw_networkx_labels(smoothed_graph, pos, font_size=10, font_color='black') #===================================Remove
+        # nx.draw_networkx_labels(smoothed_graph, pos, font_size=10, font_color='black') #===================================Remove
             
         # draw edges based on solution path
         nx.draw_networkx_edges(smoothed_graph,
@@ -268,7 +268,7 @@ class IPSmoothing:
         ax.set_ylabel(IPSmoothing.statistics[-1]["benchmark_name"] + " Relative path length", color="g")
         ax.set_title("History of smoothing algorithm", color='k')
         ax.set_xlabel("Number of collision checks")
-        ax.set_xticks(np.arange(0, len(x), 10))
+        ax.set_xticks(np.arange(0, len(x), 20))
 
         ax2 = ax.twinx()
         ax2.plot(x, IPSmoothing.statistics[-1]["size_history"], color='purple') #, marker='o', linestyle='dashed')
@@ -312,8 +312,8 @@ class IPSmoothing:
             width = 0.2
             
             ax.set_title("Solution path before and after smoothing", color='k')
-            ax.bar(np.arange(len(data_list)), [data["smoothed_length"] / data["min_length"] for data in data_list],width, color="g")
-            ax.bar(np.arange(len(data_list)), [data["original_length"] / data["min_length"] for data in data_list],width, color="None", edgecolor='darkgreen', hatch='//')
+            ax.bar(np.arange(len(data_list)), [data["smoothed_length"] / data["min_length"] for data in data_list],width, color="g", label="after")
+            ax.bar(np.arange(len(data_list)), [data["original_length"] / data["min_length"] for data in data_list],width, color="None", edgecolor='darkgreen', hatch='//', label="before")
             ax.set_ylabel(bench.name + " Relative path length", color="g")
             ax.set_xticks(np.arange(len(data_list)) + width/2)
             ax.set_xticklabels([data["planner_name"] for data in data_list])
@@ -328,6 +328,8 @@ class IPSmoothing:
             ax3.set_ylabel(bench.name + " Smoothing time",  color="y")
             ax3.spines['right'].set_position(('axes', 1.15))
             ax3.spines['right'].set_color("y")
+
+            ax.legend(loc='upper right')
 
 
     def draw_history_per_benchmark(benchList, num_coll_checks, combine_all):
@@ -376,23 +378,109 @@ class IPSmoothing:
             ax = fig.add_subplot()
             
             x = np.arange(num_coll_checks)
-
-            if combine_all:
-                ax.set_title("History of smoothing for all planners and benchmarks", color='k')
-            else:
-                ax.set_title("'" + bench.name + "' History of smoothing for all planners", color='k')
-            ax.errorbar(x, length_means, yerr=length_asymmetric_errors, color='g', elinewidth = 0.5)
+            
             ax.set_ylabel("Relative path length", color="g")
             ax.set_xlabel("Number of collision checks")
-            ax.set_xticks(np.arange(0, len(x), 10))
+            ax.set_xticks(np.arange(0, len(x), 20))
 
             ax2 = ax.twinx()
-            ax2.errorbar(x+0.5, size_means, yerr=size_asymmetric_errors, color='purple', elinewidth = 0.5)
             ax2.set_ylabel("Number of nodes", color="purple")
 
             if combine_all:
+                ax.set_title("History of smoothing for all planners and benchmarks", color='k')
+                #ax.set_ylim([1,4])
+                #ax2.set_ylim([5,15])
+                ax2.plot(x+0.5, size_means, color='purple')
+                ax.plot(x, length_means, color='g')
+
                 break
+            else:
+                ax.set_title("'" + bench.name + "' History of smoothing for all planners", color='k')
+                ax.errorbar(x, length_means, yerr=length_asymmetric_errors, color='g', elinewidth = 0.5)
+                ax2.errorbar(x+0.5, size_means, yerr=size_asymmetric_errors, color='purple', elinewidth = 0.5)
 
 
-    def draw_statistics_all_combined(benchList):
-        pass
+    def draw_statistics_all_combined():
+        """
+        Bar plot for every benchmark with (smoothed) solution path per planner algorithm
+        """
+
+        planner_name = IPSmoothing.statistics[0]["planner_name"]
+        plot_data= {"mean_smoothed_length": [],
+                    "error_smoothed_length": [[], []],
+                    "mean_original_length": [],
+                    "error_original_length": [[], []],
+                    "mean_original_size": [],
+                    "error_original_size": [[], []],
+                    "mean_smoothed_size": [],
+                    "error_smoothed_size": [[], []],
+                    "mean_time": [],
+                    "error_time": [[], []],
+                    "planner_name": []}
+
+        smoothed_length_per_algorithm = []
+        original_length_per_algorithm = []
+        smoothed_size_per_algorithm = []
+        original_size_per_algorithm = []
+        time_per_algorithm = []
+
+        for entry in IPSmoothing.statistics:
+            if entry["planner_name"] == planner_name:
+                smoothed_length_per_algorithm.append(entry["smoothed_length"] / entry["min_length"])
+                original_length_per_algorithm.append(entry["original_length"] / entry["min_length"])
+                smoothed_size_per_algorithm.append(entry["smoothed_size"])
+                original_size_per_algorithm.append(entry["original_size"])
+                time_per_algorithm.append(entry["time"])
+            else:
+                plot_data["mean_smoothed_length"].append(np.mean(smoothed_length_per_algorithm))
+                plot_data["error_smoothed_length"][0].append(np.mean(smoothed_length_per_algorithm) - min(smoothed_length_per_algorithm))
+                plot_data["error_smoothed_length"][1].append(max(smoothed_length_per_algorithm) - np.mean(smoothed_length_per_algorithm))
+                plot_data["mean_original_length"].append(np.mean(original_length_per_algorithm))
+                plot_data["error_original_length"][0].append(np.mean(original_length_per_algorithm) - min(original_length_per_algorithm))
+                plot_data["error_original_length"][1].append(max(original_length_per_algorithm) - np.mean(original_length_per_algorithm))
+                plot_data["mean_original_size"].append(np.mean(original_size_per_algorithm))
+                plot_data["error_original_size"][0].append(np.mean(original_size_per_algorithm) - min(original_size_per_algorithm))
+                plot_data["error_original_size"][1].append(max(original_size_per_algorithm) - np.mean(original_size_per_algorithm))
+                plot_data["mean_smoothed_size"].append(np.mean(smoothed_size_per_algorithm))
+                plot_data["error_smoothed_size"][0].append(np.mean(smoothed_size_per_algorithm) - min(smoothed_size_per_algorithm))
+                plot_data["error_smoothed_size"][1].append(max(smoothed_size_per_algorithm) - np.mean(smoothed_size_per_algorithm))
+                plot_data["mean_time"].append(np.mean(time_per_algorithm))
+                plot_data["error_time"][0].append(np.mean(time_per_algorithm) - min(time_per_algorithm))
+                plot_data["error_time"][1].append(max(time_per_algorithm) - np.mean(time_per_algorithm))
+                plot_data["planner_name"].append(entry["planner_name"])
+
+                smoothed_length_per_algorithm = [entry["smoothed_length"] / entry["min_length"]]
+                original_length_per_algorithm = [entry["original_length"] / entry["min_length"]]
+                smoothed_size_per_algorithm = [entry["smoothed_size"]]
+                original_size_per_algorithm = [entry["original_size"]]
+                time_per_algorithm = [entry["time"]]
+
+                planner_name = entry["planner_name"]
+
+        
+        #print(data_list)
+
+        fig, ax = plt.subplots()
+    
+        width = 0.2
+        x = np.arange(len(plot_data["mean_smoothed_length"]))
+        
+        ax.set_title("Smoothing result for all benchmarks", color='k')
+        ax.bar(x, plot_data["mean_smoothed_length"], yerr=plot_data["error_smoothed_length"], width=width, color="g", label="after")
+        ax.bar(x, plot_data["mean_original_length"], width=width, color="None", edgecolor='darkgreen', hatch='//', label="before") #, yerr=plot_data["error_original_length"])
+        ax.set_ylabel("Relative path length", color="g")
+        ax.set_xticks(x + width/2)
+        ax.set_xticklabels(plot_data["planner_name"])
+
+        ax2 = ax.twinx()
+        ax2.bar(x + width, plot_data["mean_smoothed_size"], yerr=plot_data["error_smoothed_size"], width=-width, color="purple")
+        ax2.bar(x + width, plot_data["mean_original_size"], width=width, color="None", edgecolor='indigo', hatch='//') #, yerr=plot_data["error_original_size"])
+        ax2.set_ylabel("Number of nodes", color="purple")
+
+        ax3 = ax.twinx()
+        ax3.bar(x + 2*width, plot_data["mean_time"], yerr=plot_data["error_time"], width=width, color="y")
+        ax3.set_ylabel("Smoothing time",  color="y")
+        ax3.spines['right'].set_position(('axes', 1.15))
+        ax3.spines['right'].set_color("y")
+
+        ax.legend(loc='upper right')
