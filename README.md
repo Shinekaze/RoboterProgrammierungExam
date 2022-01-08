@@ -59,4 +59,4 @@ IPSmoothing.draw_statistics_all_combined()
 
 ### Smoothing statistics per algorithm (mean and error of benchmarks)
 
-![statistics_all](./docs/statistics_all.png)
+![statistics_all_2](./docs/statistics_all_2.png)
