@@ -123,35 +123,35 @@ description = 'A simple ring.'
 benchList.append(Benchmark('Ring', CollisionChecker(scene), [[4,4]], [[18,18]], description, 2))
 
 # -----------------------------------------
-scene = dict()
-a = Point(5.25, 5.25).buffer(5.5)
-b = Point(4.75, 5.25).buffer(5.5)
-scene['obs0'] = a.difference(b)
-a = Point(5.25, 16.75).buffer(5.5)
-b = Point(4.75, 16.75).buffer(5.5)
-scene['obs1'] = a.difference(b)
-a = Point(16.75, 5.25).buffer(5.5)
-b = Point(17.25, 5.25).buffer(5.5)
-scene['obs2'] = a.difference(b)
-a = Point(16.75, 16.75).buffer(5.5)
-b = Point(17.25, 16.75).buffer(5.5)
-scene['obs3'] = a.difference(b)
-a = Point(9, 11).buffer(5.5)
-b = Point(9.5, 11).buffer(5.5)
-scene['obs4'] = a.difference(b)
-a = Point(13, 11).buffer(5.5)
-b = Point(12.5, 11).buffer(5.5)
-scene['obs5'] = a.difference(b)
+# scene = dict()
+# a = Point(5.25, 5.25).buffer(5.5)
+# b = Point(4.75, 5.25).buffer(5.5)
+# scene['obs0'] = a.difference(b)
+# a = Point(5.25, 16.75).buffer(5.5)
+# b = Point(4.75, 16.75).buffer(5.5)
+# scene['obs1'] = a.difference(b)
+# a = Point(16.75, 5.25).buffer(5.5)
+# b = Point(17.25, 5.25).buffer(5.5)
+# scene['obs2'] = a.difference(b)
+# a = Point(16.75, 16.75).buffer(5.5)
+# b = Point(17.25, 16.75).buffer(5.5)
+# scene['obs3'] = a.difference(b)
+# a = Point(9, 11).buffer(5.5)
+# b = Point(9.5, 11).buffer(5.5)
+# scene['obs4'] = a.difference(b)
+# a = Point(13, 11).buffer(5.5)
+# b = Point(12.5, 11).buffer(5.5)
+# scene['obs5'] = a.difference(b)
 
-description = 'Six Hemispheres have to be mastered.'
-benchList.append(Benchmark('Hemispheres', CollisionChecker(scene), [[1,1]], [[21,21]], description, 3))
+# description = 'Six Hemispheres have to be mastered.'
+# benchList.append(Benchmark('Hemispheres', CollisionChecker(scene), [[1,1]], [[21,21]], description, 3))
 
 # -----------------------------------------
-simpleField = dict()
-simpleField["obs1"] = LineString([(12.5, 0), (12.5, 15)]).buffer(1.0)
-simpleField["obs2"] = LineString([(7, 15), (18, 15)]).buffer(1.0)
-simpleDescription = "Around the hammerhead"
-benchList.append(Benchmark("Hammerhead", CollisionChecker(simpleField), [[10,1]], [[15,1]], simpleDescription, 1))
+# simpleField = dict()
+# simpleField["obs1"] = LineString([(12.5, 0), (12.5, 15)]).buffer(1.0)
+# simpleField["obs2"] = LineString([(7, 15), (18, 15)]).buffer(1.0)
+# simpleDescription = "Around the hammerhead"
+# benchList.append(Benchmark("Hammerhead", CollisionChecker(simpleField), [[10,1]], [[15,1]], simpleDescription, 1))
 
 
 # -----------------------------------------
@@ -166,24 +166,24 @@ benchList.append(Benchmark("Zigzag", CollisionChecker(mediumField), [[12.5,24]],
 
 # -----------------------------------------
 # Compute spiral points to add to line string
-def spiralPoints(center=(12.5,12.5), radius=10, numPoints=30, coils=4):
-    points = []
-    awayStep = float(radius)/float(numPoints)
-    aroundStep = float(coils)/float(numPoints)
-    aroundRadians = aroundStep * 2 * math.pi
-    rotation = math.pi
-    for i in range(numPoints):
-        away = i * awayStep;
-        around = i * aroundRadians + rotation;
-        x = center[0] + math.cos(around) * away;
-        y = center[1] + math.sin(around) * away;
-        points.append((x,y))
-    return points
+# def spiralPoints(center=(12.5,12.5), radius=10, numPoints=30, coils=4):
+#     points = []
+#     awayStep = float(radius)/float(numPoints)
+#     aroundStep = float(coils)/float(numPoints)
+#     aroundRadians = aroundStep * 2 * math.pi
+#     rotation = math.pi
+#     for i in range(numPoints):
+#         away = i * awayStep;
+#         around = i * aroundRadians + rotation;
+#         x = center[0] + math.cos(around) * away;
+#         y = center[1] + math.sin(around) * away;
+#         points.append((x,y))
+#     return points
 
-hardField = dict()
-hardField["obs1"] = LineString(spiralPoints(center=(12.5,12.5), radius=10, numPoints=300, coils=4)).buffer(0.1)
-hardDescription = "Through the spiral"
-benchList.append(Benchmark("Spiral", CollisionChecker(hardField), [[12.5,24]], [[13.1,12.9]], hardDescription, 3))
+# hardField = dict()
+# hardField["obs1"] = LineString(spiralPoints(center=(12.5,12.5), radius=10, numPoints=300, coils=4)).buffer(0.1)
+# hardDescription = "Through the spiral"
+# benchList.append(Benchmark("Spiral", CollisionChecker(hardField), [[12.5,24]], [[13.1,12.9]], hardDescription, 3))
 
 
 # -----------------------------------------
@@ -225,48 +225,48 @@ description = 'Medium challenge'
 benchList.append(Benchmark('Teeth', CollisionChecker(scene), [[2,2]], [[23,2]], description, 2))
 
 # -----------------------------------------
-scene = dict()
+# scene = dict()
 
-gearshift_polygon = []
-gearshift_x = 2
-gearshift_y = 3
-slot_count = 10
-slot_width = 1
-slot_length = 8
-slot_spacing = 1
-gearshift_width = slot_spacing + slot_count * (slot_width + slot_spacing)
-gearshift_heigth = 2 * slot_spacing + 2 * slot_length + slot_width
+# gearshift_polygon = []
+# gearshift_x = 2
+# gearshift_y = 3
+# slot_count = 10
+# slot_width = 1
+# slot_length = 8
+# slot_spacing = 1
+# gearshift_width = slot_spacing + slot_count * (slot_width + slot_spacing)
+# gearshift_heigth = 2 * slot_spacing + 2 * slot_length + slot_width
 
-gearshift_polygon.append((gearshift_x, gearshift_y))
-gearshift_polygon.append((gearshift_x + gearshift_width, gearshift_y))
-gearshift_polygon.append((gearshift_x + gearshift_width, gearshift_y + gearshift_heigth))
-gearshift_polygon.append((gearshift_x, gearshift_y + gearshift_heigth))
-gearshift_polygon.append((gearshift_x, gearshift_y + slot_spacing + slot_length + slot_width))
+# gearshift_polygon.append((gearshift_x, gearshift_y))
+# gearshift_polygon.append((gearshift_x + gearshift_width, gearshift_y))
+# gearshift_polygon.append((gearshift_x + gearshift_width, gearshift_y + gearshift_heigth))
+# gearshift_polygon.append((gearshift_x, gearshift_y + gearshift_heigth))
+# gearshift_polygon.append((gearshift_x, gearshift_y + slot_spacing + slot_length + slot_width))
 
-#upper slots
-for i in range(0, slot_count):
-    slot_start_x = gearshift_x + slot_spacing + i * (slot_width + slot_spacing)
-    slot_start_y = gearshift_y + slot_spacing + slot_length + slot_width
-    gearshift_polygon.append((slot_start_x, slot_start_y))
-    gearshift_polygon.append((slot_start_x, slot_start_y + slot_length))
-    gearshift_polygon.append((slot_start_x + slot_width, slot_start_y + slot_length))
-    gearshift_polygon.append((slot_start_x + slot_width, slot_start_y))
+# #upper slots
+# for i in range(0, slot_count):
+#     slot_start_x = gearshift_x + slot_spacing + i * (slot_width + slot_spacing)
+#     slot_start_y = gearshift_y + slot_spacing + slot_length + slot_width
+#     gearshift_polygon.append((slot_start_x, slot_start_y))
+#     gearshift_polygon.append((slot_start_x, slot_start_y + slot_length))
+#     gearshift_polygon.append((slot_start_x + slot_width, slot_start_y + slot_length))
+#     gearshift_polygon.append((slot_start_x + slot_width, slot_start_y))
 
-#lower slots
-for i in range(slot_count - 1, -1, -1):
-    slot_start_x = gearshift_x + slot_spacing + i * (slot_width + slot_spacing) + slot_width
-    slot_start_y = gearshift_y + slot_spacing + slot_length
-    gearshift_polygon.append((slot_start_x, slot_start_y))
-    gearshift_polygon.append((slot_start_x, slot_start_y - slot_length))
-    gearshift_polygon.append((slot_start_x - slot_width, slot_start_y - slot_length))
-    gearshift_polygon.append((slot_start_x - slot_width, slot_start_y))
+# #lower slots
+# for i in range(slot_count - 1, -1, -1):
+#     slot_start_x = gearshift_x + slot_spacing + i * (slot_width + slot_spacing) + slot_width
+#     slot_start_y = gearshift_y + slot_spacing + slot_length
+#     gearshift_polygon.append((slot_start_x, slot_start_y))
+#     gearshift_polygon.append((slot_start_x, slot_start_y - slot_length))
+#     gearshift_polygon.append((slot_start_x - slot_width, slot_start_y - slot_length))
+#     gearshift_polygon.append((slot_start_x - slot_width, slot_start_y))
 
-gearshift_polygon.append((gearshift_x, gearshift_y + slot_spacing + slot_length))
+# gearshift_polygon.append((gearshift_x, gearshift_y + slot_spacing + slot_length))
 
-scene["gearshift"] = Polygon(gearshift_polygon)
+# scene["gearshift"] = Polygon(gearshift_polygon)
 
-description = 'Hard challenge'
-benchList.append(Benchmark('Gearshift', CollisionChecker(scene), [[24, 2]], [[21.5, 4.5]], description, 3))
+# description = 'Hard challenge'
+# benchList.append(Benchmark('Gearshift', CollisionChecker(scene), [[24, 2]], [[21.5, 4.5]], description, 3))
 
 # -----------------------------------------
 def rectangle(x, y, width, height = None):
@@ -335,11 +335,11 @@ description = "Needle in a haystack"
 benchList.append(Benchmark("Haystack", CollisionChecker(haystackField), [[5,10.5]], [[19,11.7]],description, 3))
 
 # -----------------------------------------
-hairPerson = dict()
-middleCircle = [12,12]
-hairPerson["obs1"] = Point(middleCircle).buffer(5.0)
-hairPerson["obs2"] = Polygon([(7, 0), (7, 6), (17, 6), (17,0)]).buffer(1.0)
-for i in range(10):
-    hairPerson["obs3"+str(i)] = LineString([(21-2*i,21), middleCircle ]).buffer(0.2)
-description = "From Shoulder to shoulder"
-benchList.append(Benchmark("HairPerson", CollisionChecker(hairPerson), [[9,7.5]], [[15,7.5]],description, 4))
+# hairPerson = dict()
+# middleCircle = [12,12]
+# hairPerson["obs1"] = Point(middleCircle).buffer(5.0)
+# hairPerson["obs2"] = Polygon([(7, 0), (7, 6), (17, 6), (17,0)]).buffer(1.0)
+# for i in range(10):
+#     hairPerson["obs3"+str(i)] = LineString([(21-2*i,21), middleCircle ]).buffer(0.2)
+# description = "From Shoulder to shoulder"
+# benchList.append(Benchmark("HairPerson", CollisionChecker(hairPerson), [[9,7.5]], [[15,7.5]],description, 4))
