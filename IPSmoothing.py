@@ -3,6 +3,7 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import numpy as np
 import math
+import pandas as pd
 import time
 
 class IPSmoothing:
@@ -21,12 +22,15 @@ class IPSmoothing:
         self.temp_planner = temporary_planner
         self.size_history = []
         self.length_history = []
+        self.debug = False
 
-    def smooth_solution(self, k_max, eps, variance_steps, debug = False):
+    def smooth_solution(self, k_max, eps, variance_steps, min_variance, debug=False):
         """
         Returns smoothed graph containing only the solution node and edges
         """
         start_time = time.time()
+
+        self.debug = debug
 
         if self.solution == []:
             return None
@@ -37,28 +41,43 @@ class IPSmoothing:
 
         self.length_history.append(self.get_path_length(smooth_graph, path))
         self.size_history.append(len(path))
-        tx = 0
+        if debug:
+            tx = 0
 
-        # TODO: Abbruchkriterium Varianz der letzten x versuche
-        for n in range(50): # Todo: numpy variance -> length_history[-variance_steps]
-            xx = 0
+        for n in range(50):
+            rolling_var = pd.DataFrame(self.length_history).rolling(window=10).var()
+            # rolling_var = pd.DataFrame(self.length_history).rolling(10).var()
+            if debug:
+                print(f"Length of History: {len(self.length_history)}")
+                print(rolling_var)
+
+            if len(self.length_history) > variance_steps and rolling_var.iloc[-1:].to_numpy() < min_variance:
+                print(f"Variance: {rolling_var.iloc[-1:].to_numpy()}")
+                print("Breaking due to small variance")
+                break
+
+            if debug:
+                xx = 0
+
             i = random.randint(1, len(path)-2)
             break_loop = False
 
             for k in range(k_max, 0, -1):
-
                 if break_loop:
-                    # print("breaking!")
+                    if debug:
+                        print("Line Connected, Break_Loop triggered")
                     break
+
                 iscolliding = False
 
-                tx += 1
-                xx += 1
-                # print(f"total steps: {tx}")
-                # print(f"n step: {xx}")
-                # print(f"n: {n}")
-                # print(f"k: {k}")
-                # print(self.plannerFactoryName)
+                if debug:
+                    tx += 1
+                    xx += 1
+                    print(f"total steps: {tx}")
+                    print(f"n step: {xx}")
+                    print(f"n: {n}")
+                    print(f"k: {k}")
+                    print(self.plannerFactoryName)
 
                 if i-k <= 0:
                     k_prev_node = "start"
@@ -70,40 +89,35 @@ class IPSmoothing:
                 else:
                     k_next_node = path[i+k]
 
-                # print(f"Initial Path: {path}")
-                # print(f"i: {i}")
-                # print(f"length of path: {len(path)}")
-                # print(f"k_prev: {k_prev_node}")
-                # print(f"Centered: {path[i]}")
-                # print(f"k_next: {k_next_node}")
+                if debug:
+                    print(f"Initial Path: {path}")
+                    print(f"i: {i}")
+                    print(f"length of path: {len(path)}")
+                    print(f"k_prev: {k_prev_node}")
+                    print(f"Centered: {path[i]}")
+                    print(f"k_next: {k_next_node}")
 
-                if self.collision_checker.lineInCollision(pos[k_prev_node],pos[k_next_node]):
-                    # print("Line collides, No change")
+                if self.collision_checker.lineInCollision(pos[k_prev_node], pos[k_next_node]):
+                    if debug:
+                        print("Line collides, No change")
+
                     iscolliding = True
 
                 else:
                     smooth_graph.add_edge(k_prev_node,k_next_node)
 
                     between_nodes = path[path.index(k_prev_node)+1:path.index(k_next_node)]
-                    # print(f"Deleted Nodes: {between_nodes}")
 
                     for node in between_nodes:
                         smooth_graph.remove_node(node)
 
                     path = nx.shortest_path(smooth_graph,"start","goal")
-                    # print(f'new path creation, new path: {path}')
 
-                    # self.length_history.append(self.get_path_length(smooth_graph, path))
-                    # self.size_history.append(len(path))
-                    
                     if debug:
-                        print(path)
                         print("new edge (", k_prev_node,"-", k_next_node, ") k =",k, " remove:", between_nodes)
+                        print(f'New path: {path}')
+                        self.visualize_path(self.temp_planner, smooth_graph)
 
-                    #  Allows for iterative visualization
-                    # self.visualize_path(self.temp_planner, smooth_graph, tx) #=========================Remove
-
-                    # break
                     break_loop = True
 
                 self.length_history.append(self.get_path_length(smooth_graph, path))
@@ -112,8 +126,9 @@ class IPSmoothing:
                 if k == 1 and iscolliding and not break_loop:
                     smooth_graph = self.del_tree(smooth_graph, path, eps, i)
 
-                #  Allows for iterative visualization
-                # self.visualize_path(self.temp_planner, smooth_graph, tx) #=========================Remove
+                if debug:
+                    #  Allows for iterative visualization
+                    self.visualize_path(self.temp_planner, smooth_graph)
 
                 pos = nx.get_node_attributes(smooth_graph,'pos')
                 path = nx.shortest_path(smooth_graph,"start","goal")
@@ -133,22 +148,16 @@ class IPSmoothing:
         return smooth_graph
 
     def del_tree(self, graph, path, eps, center_index):
-        # print("del_tree")
         DT_Flag = True
         t = 1
-        # eps = 0.5
-        # pos = nx.get_node_attributes(graph, 'pos')
-        # print(pos)
-        # print(path)
 
         # Gather the points
-        # print(f"DelTree centered on list item {center_index}, node: {path[center_index]}")
-        # print(f"Number of nodes in graph: {graph.number_of_nodes()}")
-        # print(f"Number of edges in graph: {graph.number_of_edges()}")
-
         k_prev_node = path[center_index-1]
         center_node = path[center_index]
         k_next_node = path[center_index+1]
+
+        if self.debug:
+            print(f"DelTree centered on list item {center_index}, node: {path[center_index]}")
 
         pA = np.array(graph.nodes[k_prev_node]['pos'])
         pB = np.array(graph.nodes[center_node]['pos'])
@@ -162,51 +171,47 @@ class IPSmoothing:
             pD = pB + dAB/pow(2, t)  # Pz1 from slides
             pE = pB + dCB/pow(2, t)  # Pz2 from slides
 
-            # Check for line collision
+            # if magnitude/2^t is smaller than eps, break loop
             if np.linalg.norm(dAB)/pow(2, t) < eps or np.linalg.norm(dCB)/pow(2, t) < eps:
-                # print("DelTree failed, line value smaller than epsilon")
-                # if magnitude/2^t is smaller than eps, break loop
+                if self.debug:
+                    print("DelTree failed, line value smaller than epsilon")
+
                 DT_Flag = False
 
+            # Test line connection between new points for collisions
             elif not self.collision_checker.lineInCollision(pD, pE):
 
                 DT_Flag = False  # Breaks while loop
 
-                # print(f"graph nodes: {graph.nodes}")
-                test = max([i for i in graph.nodes if isinstance(i, int)])
+                highest_node_name = max([i for i in graph.nodes if isinstance(i, int)])
+                if self.debug:
+                    print(f"graph nodes: {graph.nodes}")
+                    print(highest_node_name)
 
-                # print(test)
+                new_id1 = highest_node_name+1
+                new_id2 = highest_node_name+2
 
-                new_id1 = test+1
-                new_id2 = test+2
-
-                graph.add_node(new_id1, pos=pD.tolist())
+                graph.add_node(new_id1, pos=pD.tolist()) #  Add new Nodes
                 graph.add_node(new_id2, pos=pE.tolist())
 
-                graph.add_edge(k_prev_node, new_id1)
+                graph.add_edge(k_prev_node, new_id1) #  Add new Edges
                 graph.add_edge(new_id1, new_id2)
                 graph.add_edge(new_id2, k_next_node)
 
-                graph.remove_node(center_node)
-                # print(f"Adding nodes: {new_id1} and {new_id2}")
-                # print(f"deleting center node: {center_node}")
+                graph.remove_node(center_node) #  Delete corner node
 
-                # pos = nx.get_node_attributes(graph, 'pos')
-                # print(pos)
-
-                # self.path_arr.insert(self.k_next, pE)  # Inserts Pz2
-                # del self.path_arr[self.start_point]  # Deletes corner point
-                # self.path_arr.insert(self.start_point, pD)  #Inserts Pz1
-
-                # print("DelTree successful")
-
-                path = nx.shortest_path(graph,"start","goal") #====================Needed?
-                # print(f'del_tree path creation, new path: {path}')
+                if self.debug:
+                    print(f"Adding nodes: {new_id1} and {new_id2}")
+                    print(f"deleting center node: {center_node}")
+                    print("DelTree successful")
+                    path = nx.shortest_path(graph,"start","goal")
+                    print(f'del_tree path creation, new path: {path}')
 
             else:
-                # print("DelTree line collides")
-                pass
+                if self.debug:
+                    print("DelTree line collides")
 
+            path = nx.shortest_path(graph,"start","goal")
             self.length_history.append(self.get_path_length(graph, path))
             self.size_history.append(len(path))
 
@@ -214,7 +219,7 @@ class IPSmoothing:
 
         return graph
         
-    def visualize_path(self, plannerFactory, smoothed_graph, X):
+    def visualize_path(self, plannerFactory, smoothed_graph):
         """
         Draws smoothed path over original solution and scene
         """
@@ -223,8 +228,6 @@ class IPSmoothing:
         ax = fig_local.add_subplot(1, 1, 1)
         title = self.plannerFactoryName + " - " + self.benchmark.name
         ax.set_title(title, color='w')
-
-        plt.title(X)
 
         # Draw scene with original solution
         plannerFactory[self.plannerFactoryName][2](self.planner, self.solution, ax=ax, nodeSize=100)
@@ -239,8 +242,6 @@ class IPSmoothing:
                                node_color='purple',
                                ax=ax
                                )
-
-        # nx.draw_networkx_labels(smoothed_graph, pos, font_size=10, font_color='black') #===================================Remove
             
         # draw edges based on solution path
         nx.draw_networkx_edges(smoothed_graph,
@@ -250,7 +251,7 @@ class IPSmoothing:
                                width=10,
                                ax=ax
                                )
-        plt.show()
+        # plt.show()
 
     def draw_history(self):
         """
