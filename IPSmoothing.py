@@ -44,6 +44,7 @@ class IPSmoothing:
 
         for n in range(20):
             rolling_var = pd.DataFrame(self.length_history).rolling(window=10).var()
+            # rolling_var = pd.DataFrame(self.length_history).rolling(10).var()
             if debug:
                 print(f"Length of History: {len(self.length_history)}")
                 print(rolling_var)
