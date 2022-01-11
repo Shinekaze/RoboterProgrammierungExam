@@ -140,7 +140,7 @@ class IPSmoothing:
                                         "original_size" : len(self.solution),
                                         "smoothed_length" : self.get_path_length(smooth_graph, path),
                                         "smoothed_size" : len(path),
-                                        "min_length": self.get_path_length(smooth_graph, ["start", "goal"]),
+                                        "min_length": self.get_path_length(smooth_graph, path), #self.get_path_length(smooth_graph, ["start", "goal"]),
                                         "length_history": self.length_history,
                                         "size_history": self.size_history,
                                         "time": end_time-start_time})
