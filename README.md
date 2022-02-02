@@ -37,26 +37,24 @@ IPSmoothing.draw_statistics_all_combined()
 
 ### Single benchmark and single algorithm
 
-![scene_1](./docs/scene_1.png)
-![history_1](./docs/history_1.png)
+![trap_scene](./docs/trap_scene.png)
+![trap_history](./docs/trap_history.png)
 
-![scene_3](./docs/scene_3.png)
-![history_3](./docs/history_3.png)
+![zigzag_scene](./docs/zigzag_scene.png)
+![zigzag_history](./docs/zigzag_history.png)
 
 ### Smoothing statistics per benchmark and algorithm
 
-![history_stats_1](./docs/history_stats_1.png)
-![history_stats_3](./docs/history_stats_3.png)
+![trap_statistics](./docs/trap_statistics.png)
 
 ### Smoothing history per benchmark (mean and error of algorithms)
 
-![history_error_lines_1](./docs/history_error_lines_1.png)
-![history_error_lines_3](./docs/history_error_lines_3.png)
+![trap_history_per_benchmark](./docs/trap_history_per_benchmark.png)
 
 ### Smoothing history for all benchmarks and algorithms
 
-![history_all](./docs/history_all.png)
+![all_history](./docs/all_history.png)
 
 ### Smoothing statistics per algorithm (mean and error of benchmarks)
 
-![statistics_all_2](./docs/statistics_all_2.png)
+![all_statistics](./docs/all_statistics.png)
