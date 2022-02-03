@@ -26,8 +26,22 @@ class IPSmoothing:
 
     def smooth_solution(self, k_max, eps, variance_steps, min_variance, debug=False):
         """
-        Returns smoothed graph containing only the solution node and edges
+        Smooths the path solution over a range of iterations, breaking if the range count is exceeded, or if the path
+        variance is smaller than a minimum value.
+
+        Selects a random point (P) on the path, then attempts to smooth the path by connecting the points (P-k_max) and
+        (P+k_max) directly, if successful, all points between are deleted. By failure, k is de-incremented and the new
+        points checked for connection. After repeated failure, and k=1, then delTree is called. Returns the smoothed
+        path as an NetworkX Graph object.
+
+        :param k_max: k value for selecting the predecessor and follower points to be joined
+        :param eps: epsilon value for input into delTree
+        :param variance_steps: window width for the rolling variance, how many previous iterations should be considered
+        :param min_variance: minimum value for the variance, used to end the process early when path change is minimal
+        :param debug: Boolean check to enable/disable printed information. (default False)
+        :return: smooth_graph -- NetworkX Graph object containing the improved path
         """
+
         start_time = time.time()
 
         self.debug = debug
@@ -46,7 +60,6 @@ class IPSmoothing:
 
         for n in range(50):
             rolling_var = pd.DataFrame(self.length_history).rolling(window=10).var()
-            # rolling_var = pd.DataFrame(self.length_history).rolling(10).var()
             if debug:
                 print(f"Length of History: {len(self.length_history)}")
                 print(rolling_var)
@@ -148,6 +161,19 @@ class IPSmoothing:
         return smooth_graph
 
     def del_tree(self, graph, path, eps, center_index):
+        """
+        Smooths the path when pre-existing points cannot be directly joined. Generates new midpoints along the paths
+        between points (P) and (P-1) or (P+1). Attempts to join the midpoints directly and delete (P). If this fails,
+        then a new attempt is made with a new set of midpoints, closer to (P). Repeats until successful, or until the
+        distance between (P) and the new midpoints is smaller than a user-defined value, eps. Returns a NetworkX Graph
+        object, graph.
+
+        :param graph: A NetworkX Graph object to be smoothed
+        :param path: NetworkX Union object containing the shortest path between Start and Goal
+        :param eps: Shortest allowable distance between centerpoint (P) and the generated midpoint.
+        :param center_index: Index of centerpoint (P)
+        :return: graph -- NetworkX Graph object containing the improved path
+        """
         DT_Flag = True
         t = 1
 
@@ -221,7 +247,11 @@ class IPSmoothing:
         
     def visualize_path(self, plannerFactory, smoothed_graph):
         """
-        Draws smoothed path over original solution and scene
+        Draws smoothed path over original solution and scene. No return.
+
+        :param plannerFactory: NetworkX object containing the scene to be drawn
+        :param smoothed_graph: NetworkX Graph object containing the improved path
+        :return: None
         """
 
         fig_local = plt.figure(figsize=(10, 10))
@@ -255,7 +285,9 @@ class IPSmoothing:
 
     def draw_history(self):
         """
-        Draw history graph for the last performed smoothing
+        Draws history graph for the last performed smoothing. No return.
+
+        :return: None
         """
 
         #print(IPSmoothing.statistics[-1]["length_history"], IPSmoothing.statistics[-1]["planner_name"])
@@ -276,6 +308,14 @@ class IPSmoothing:
         ax2.set_ylabel(IPSmoothing.statistics[-1]["benchmark_name"] + " Number of nodes", color="purple")
 
     def get_path_length(self, graph, solution):
+        """
+        Calculates the length of the path based on each node's position. Returns length.
+
+        :param graph: NetworkX Graph object containing each node's position
+        :param solution: the solution path to be checked
+        :return: length -- the length of the solution path
+        """
+
         pos = nx.get_node_attributes(graph,'pos')
 
         prev_node = None
@@ -296,7 +336,9 @@ class IPSmoothing:
         
     def draw_statistics(benchList):
         """
-        Bar plot for every benchmark with (smoothed) solution path per planner algorithm
+        Plots a bar graph for every benchmark with (smoothed) solution path per planner algorithm. No return.
+
+        :return: None
         """
 
         for bench in benchList:
@@ -335,9 +377,11 @@ class IPSmoothing:
 
     def draw_history_per_benchmark(benchList, num_coll_checks, combine_all):
         """
-        Draw history graph for all algorithms per benchmark
-        Number of collision checks to draw
-        if combine_all = true one single graph with all benchmarks is drawn
+        Draws a history graph for all algorithms per benchmark. No return.
+
+        :param num_coll_checks: number of collision checks per drawing
+        :param combine_all: Boolean, True draws a single graph with all benchmarks
+        :return: None
         """
 
         for bench in benchList:
@@ -401,9 +445,10 @@ class IPSmoothing:
                 ax2.errorbar(x+0.5, size_means, yerr=size_asymmetric_errors, color='purple', elinewidth = 0.5)
 
 
-    def draw_statistics_all_combined():
+    def draw_statistics_all_combined(self):
         """
-        Bar plot for every benchmark with (smoothed) solution path per planner algorithm
+        Draws a bar graph for every benchmark with (smoothed) solution path per planner algorithm. Returns none.
+        :return: None
         """
 
         planner_name = IPSmoothing.statistics[0]["planner_name"]
@@ -457,9 +502,6 @@ class IPSmoothing:
                 time_per_algorithm = [entry["time"]]
 
                 planner_name = entry["planner_name"]
-
-        
-        #print(data_list)
 
         fig, ax = plt.subplots()
     
