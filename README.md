@@ -69,7 +69,8 @@ IPSmoothing.draw_statistics_all_combined()
 
 ## Lösungen zu Aufgabe 2
 ### Kann der Lösungspfad mit einem Industrieroboter abgefahren werden?
-
+Ja, das abfahren ist prinzipiell möglich. Die Berechnung sollte bei eimem standardmäßigem 6-DOF Roboter jedoch auch im 6D Raum erfolgen. 
 ### Was bremst die Abfahrgeschwindigkeit noch aus?
-
+Die gesamte Bewegung wird aus PTP Bewegungen bestehen. Jedoch hat der Pfad trotz der Glättung noch Punkte an denen der Roboter seine Bewegung stoppen wird.
 ### Wie könnte man weiterhin die Abfahrgeschwindigkeit erhöhen?
+Dieser Bewegungsstop an den Punkten kann durch ein Überschleifen der Punkte verhindert werden. Dabei ist zu beachten, dass der beim Smoothing erstellte Pfad "wie ein Gummi" um das Hindernis gespannt ist. Das Überschleifen würde daher sehr wahrscheinlich zu Kollisionen führen. Ein Abstand kann zum Beispiel durch ein "Aufblähen" des Hindernisses zu Beginn der Pfadsuche und des Smoothings sichergestellt werden.
