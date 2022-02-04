@@ -1,7 +1,7 @@
 # Projektaufgabe 8: Glätten des Ergebnispfades nach Latombe
 
-- Aufgabenstellung: siehe `Aufgabe_8.pdf`
-- Präsentation siehe: `Präsentation.ppt`
+- Aufgabenstellung: siehe `Projektaufgabe_8.pdf`
+- Präsentation siehe: `Projektaufgabe_8_Glaetten-nach-Latombe.ppt` (nur in Email angehängt)
 - Smoothing Algorithmus: siehe `IPSmoothing.py`
 - Ergebnisdiskussion: hier im `README.md`
 - Lösungen zu Aufgabe 2: hier im `README.md`
@@ -43,29 +43,91 @@ IPSmoothing.draw_statistics_all_combined()
 
 ## Ergebnisdiskussion
 
-### Single benchmark and single algorithm
+### Einfaches Benchmark nach Glättung
 
 ![trap_scene](./docs/trap_scene.png)
+
+In diesem Benchmark sieht man den originalen Lösungspfad des BasicPRM Planers (grün) und den geglätteten Pfad nach dem Smoothing nach Latombe (lila).
+
+Das Smoothing wurde über 200 Collision checks durchgeführt.
+
+Im folgenden ist der Verlauf der relativen Pfadlänge (grün) und der Knotenanzahl (lila) während dem Glätten dargestellt.
+
 ![trap_history](./docs/trap_history.png)
 
-![zigzag_scene](./docs/zigzag_scene.png)
-![zigzag_history](./docs/zigzag_history.png)
+Man sieht ein Miminum der Knotenanzahl bei ca. 50 Collision Checks.
 
-### Smoothing statistics per benchmark and algorithm
+Um Rechenzeit zu sparen (Collision checks im 6D Raum sind sehr aufwändig) wird versucht den optimalen Abbruchzeitpunkt zu finden.
 
-![trap_statistics](./docs/trap_statistics.png)
+Dies ist ein Kompromiss mit der Genauigkeit der Glättung bzw. eine längere Pfadlänge wird in Kauf genommen.
 
-### Smoothing history per benchmark (mean and error of algorithms)
+Die gleitende Varianz der letzten n Pfadlängen wird mit der definierten minimalen Varianzwert verglichen.
+
+Im folgenden Graph ist das Varianzabbruchkriterium (n=20, var_min=0.01) so gewählt, dass das Knotenminimum erreicht wird.
+
+![trap_history_variance](./docs/trap_history_variance.png)
+
+Ein kürzerer Weg um ca. 10% im Vergleich zu 200 collision checks wäre möglich gewesen. 
+
+Auch im Pfad sieht man, dass dies nicht der optimalste Weg ist.
+
+![trap_scene_variance](./docs/trap_scene_variance.png)
+
+## Vergleich der verschiedenen Planer
+
+Um den Einfluss der verschiedenen Planer bzw. deren Lösungspfade auf das Smoothing zu ermitteln wurden hier alle Planer zusammen betrachtet und deren Mittelwert (durchgezogen) und min bzw. max (dünne Linien) aufgetragen.
 
 ![trap_history_per_benchmark](./docs/trap_history_per_benchmark.png)
 
-### Smoothing history for all benchmarks and algorithms
+Nach ca. 70 Collision checks ist es ziemlich egal welcher Planer verwendet wurde. Die geglätteten Pfade kommen auf eine sehr ähnliche Länge.
+
+Dieser Punkt hängt stark vom jeweiligen Benchmark ab und verschiebt sich bei schwereren Szenen stark nach rechts.
+
+Die Statistiken der verschiedenen Planer zeigen dies auch. 
+
+Der orignale Pfad (gestrichelt) und das Ergebnis nach dem smoothing (ausgemalt) sind sowhol bei Pfadlänge (grün) Knotenanzahl und Berechnungszeit (gelb) nach dem Glätten auf einem sehr ähnlichen Wert.
+
+![trap_statistics](./docs/trap_statistics.png)
+
+## Ergebnisse auf allen Benchmarks
+
+Das selbe Ergebnis zeigt sich beim Vergleich aller Benchmarks und Planer:
 
 ![all_history](./docs/all_history.png)
 
-### Smoothing statistics per algorithm (mean and error of benchmarks)
+- Im Durchschnitt sind die Benchmarks schwerer als bei "Trap". 
+- Es braucht im Mittel ca. 40 collision cheks um ein Plateua in der Knotenanzahl zu erreichen.
+- Die Pfadlänge ist monoton fallend.
+- Die Anzahl der Knoten hängt stark vom jeweiligen benchmark ab.
+- Das optimale Varianzabbruchkriterium hängt stark vom jeweiligen Benchmark ab.
 
 ![all_statistics](./docs/all_statistics.png)
+
+Die Statistiken zeigen bis auf einem Außreißer beim lazyPRM ist es egal welchen Planer man davor benutzt hat.
+
+Alle Planer kommen zu einem ähnlich gutem Ergebnis.
+
+- Reduzierung der Pfadlängen um 25 - 90 %
+- Halbierung der Knotenanzahl bei VisibilityPRM, LazyPRM und Simpel RRT
+- Nur kleine Reduzierung der Knotenanzahl (bei schon sehr guten Lösungen) von kClosest und RRT
+- Berechnungszeit für 200 Collision Cheks fast immer unter 0.1 s
+
+## Parameteranalyse
+
+Mit dem Varianzabbruchkriterium kann beeinflusst werden, wann abgebrochen wird um Rechenzeit zu sparen aber einen längeren Pfad in Kauf zu nehmen.
+
+Viel interessanter ist es an den Parametern der Glättung optimierung vorzunehmen und den Verlauf an sich zu beeinflussen.
+
+Mögliche Parameter:
+- k = 3 (der k-te Nachbar wird versucht zu verbinden)
+- epsilon = 0.5 (Abbruchkriterium für deltree, minimaler Abstand)
+- n = 200 (Anzahl kollision checks)
+
+Hier ist der Verlauf bei den anfangs gewählten Parametern: 
+
+![all_history](./docs/all_history.png)
+
+Eine Verdopplung auf n=400 hat kaum Einfluss auf die Pfadlänge
 
 ## Lösungen zu Aufgabe 2
 ### Kann der Lösungspfad mit einem Industrieroboter abgefahren werden?
