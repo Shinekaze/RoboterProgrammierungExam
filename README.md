@@ -1,6 +1,6 @@
 # Projektaufgabe 8: Glätten des Ergebnispfades nach Latombe
 
-- Aufgabenstellung: siehe `Projektaufgabe_8.pdf`
+- Aufgabenstellung: siehe `Projektaufgabe_8.pdf`(nur in Email angehängt)
 - Präsentation siehe: `Projektaufgabe_8_Glaetten-nach-Latombe.ppt` (nur in Email angehängt)
 - Smoothing Algorithmus: siehe `IPSmoothing.py`
 - Ergebnisdiskussion: hier im `README.md`
@@ -119,15 +119,42 @@ Mit dem Varianzabbruchkriterium kann beeinflusst werden, wann abgebrochen wird u
 Viel interessanter ist es an den Parametern der Glättung optimierung vorzunehmen und den Verlauf an sich zu beeinflussen.
 
 Mögliche Parameter:
+
 - k = 3 (der k-te Nachbar wird versucht zu verbinden)
 - epsilon = 0.5 (Abbruchkriterium für deltree, minimaler Abstand)
 - n = 200 (Anzahl kollision checks)
 
 Hier ist der Verlauf bei den anfangs gewählten Parametern: 
 
-![all_history](./docs/all_history.png)
+![all_history_200coll](./docs/all_history_200coll.png)
 
-Eine Verdopplung auf n=400 hat kaum Einfluss auf die Pfadlänge
+Eine Verdopplung auf n=400 hat kaum Einfluss auf die Pfadlänge.
+
+![all_history_400coll](./docs/all_history_400coll.png)
+
+Reduzierung auf epsilon=0.1 zeigt wie zu erwarten einen Anstieg in der Knotenanzahl.
+
+Epsilon gibt an ab welcher Distanz nicht mehr weiter probiert wird neuen Verbindungen aufzubauen.
+
+Bei einem kleineren Epsilon macht es Sinn, dass mehr Verbindungen bzw. Knoten erstellt werden.
+
+Die Pfadlänge verbessert sich dadurch allerdings nicht.
+
+![all_history_eps0_1](./docs/all_history_eps0_1.png)
+
+Durch Reduzierung des k Parameters auf k=1 erhöht sich die Steigung mit der die Pfadlänge abfällt enorm.
+
+Hiermit kann deutlich schneller ein kürzerer Pfad gefunden werden.
+
+K=1 Bedeutet im Enddeffekt, dass nur der Deltree algorithmus angewendet wird und sowfot versucht wird neue Knoten zu generieren.
+
+![all_history_k1](./docs/all_history_k1.png)
+
+Dies sind die optimalen Parameter:
+
+- k = 1 
+- epsilon = 0.5
+- n = 200
 
 ## Lösungen zu Aufgabe 2
 ### Kann der Lösungspfad mit einem Industrieroboter abgefahren werden?
