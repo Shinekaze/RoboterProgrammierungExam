@@ -85,7 +85,7 @@ Dieser Punkt hängt stark vom jeweiligen Benchmark ab und verschiebt sich bei sc
 
 Die Statistiken der verschiedenen Planer zeigen dies auch. 
 
-Der orignale Pfad (gestrichelt) und das Ergebnis nach dem smoothing (ausgemalt) sind sowhol bei Pfadlänge (grün) Knotenanzahl und Berechnungszeit (gelb) nach dem Glätten auf einem sehr ähnlichen Wert.
+Der orignale Pfad (gestrichelt) und das Ergebnis nach dem smoothing (ausgemalt) sind sowohl bei Pfadlänge (grün) Knotenanzahl und Berechnungszeit (gelb) nach dem Glätten auf einem sehr ähnlichen Wert.
 
 ![trap_statistics](./docs/trap_statistics.png)
 
@@ -96,33 +96,33 @@ Das selbe Ergebnis zeigt sich beim Vergleich aller Benchmarks und Planer:
 ![all_history](./docs/all_history.png)
 
 - Im Durchschnitt sind die Benchmarks schwerer als bei "Trap". 
-- Es braucht im Mittel ca. 40 collision cheks um ein Plateua in der Knotenanzahl zu erreichen.
+- Es braucht im Mittel ca. 40 collision checks um ein Plateau in der Knotenanzahl zu erreichen.
 - Die Pfadlänge ist monoton fallend.
-- Die Anzahl der Knoten hängt stark vom jeweiligen benchmark ab.
+- Die Anzahl der Knoten hängt stark vom jeweiligen Benchmark ab.
 - Das optimale Varianzabbruchkriterium hängt stark vom jeweiligen Benchmark ab.
 
 ![all_statistics](./docs/all_statistics.png)
 
-Die Statistiken zeigen bis auf einem Außreißer beim lazyPRM ist es egal welchen Planer man davor benutzt hat.
+Die Statistiken zeigen bis auf einem Außreißer beim lazyPRM, dass es egal ist welchen Planer man davor benutzt hat.
 
 Alle Planer kommen zu einem ähnlich gutem Ergebnis.
 
 - Reduzierung der Pfadlängen um 25 - 90 %
 - Halbierung der Knotenanzahl bei VisibilityPRM, LazyPRM und Simpel RRT
 - Nur kleine Reduzierung der Knotenanzahl (bei schon sehr guten Lösungen) von kClosest und RRT
-- Berechnungszeit für 200 Collision Cheks fast immer unter 0.1 s
+- Berechnungszeit für 200 Collision Checks fast immer unter 0.1 s
 
 ## Parameteranalyse
 
-Mit dem Varianzabbruchkriterium kann beeinflusst werden, wann abgebrochen wird um Rechenzeit zu sparen aber einen längeren Pfad in Kauf zu nehmen.
+Mit dem Varianzabbruchkriterium kann beeinflusst werden, wann abgebrochen wird um Rechenzeit zu sparen.
 
-Viel interessanter ist es an den Parametern der Glättung optimierung vorzunehmen und den Verlauf an sich zu beeinflussen.
+Viel interessanter ist es an den Parametern der Glättung Optimierung vorzunehmen und den Verlauf an sich zu beeinflussen.
 
 Mögliche Parameter:
 
 - k = 3 (der k-te Nachbar wird versucht zu verbinden)
 - epsilon = 0.5 (Abbruchkriterium für deltree, minimaler Abstand)
-- n = 200 (Anzahl kollision checks)
+- n = 200 (Anzahl collision checks)
 
 Hier ist der Verlauf bei den anfangs gewählten Parametern: 
 
@@ -146,11 +146,11 @@ Durch Reduzierung des k Parameters auf k=1 erhöht sich die Steigung mit der die
 
 Hiermit kann deutlich schneller ein kürzerer Pfad gefunden werden.
 
-K=1 Bedeutet im Enddeffekt, dass nur der Deltree algorithmus angewendet wird und sowfot versucht wird neue Knoten zu generieren.
+K=1 Bedeutet im Enddeffekt, dass nur der Deltree Algorithmus angewendet wird und sofort versucht wird neue Knoten zu generieren.
 
 ![all_history_k1](./docs/all_history_k1.png)
 
-Dies sind die optimalen Parameter:
+Das sind die optimalen Parameter:
 
 - k = 1 
 - epsilon = 0.5
